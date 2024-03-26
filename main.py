@@ -1,6 +1,9 @@
 import pygame
 import math
 from planet import Planet
+from planet import Asteroid
+from planet import AsteroidBelt
+import random
 
 pygame.init()
 
@@ -61,6 +64,10 @@ def main():
 
     planets = [sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune]
 
+    asteroidbelt = AsteroidBelt(1000,sun = sun)  # Example: 100 asteroids
+
+
+    
     dragging = False
 
     while run:
@@ -75,9 +82,20 @@ def main():
                     scale *= 1.1
                 elif event.button == 5:  # scroll down
                     scale /= 1.1
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    offset_x -= 40
+                elif event.key == pygame.K_RIGHT:
+                    offset_x += 40
+                if event.key == pygame.K_UP:
+                    offset_y += 40
+                elif event.key == pygame.K_DOWN:
+                    offset_y -= 40
         for planet in planets:
             planet.update_position(planets)
             planet.draw(WIN, scale, (offset_x, offset_y))
+        asteroidbelt.update_positions(planets)
+        asteroidbelt.draw(WIN,scale, (offset_x,offset_y))
 
         pygame.display.update()
 
