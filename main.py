@@ -33,8 +33,9 @@ def main():
     global scale, offset_x, offset_y, dragging, last_mouse_pos
 
     run = True
-    clock = pygame.time.Clock()
+    clock = pygame.time.Clock() 
 
+    #Create Sun and planets in solar system with realistic values
     sun = Planet(0, 0, 30, YELLOW, 1.98892 * 10**30)
     sun.sun = True
 
@@ -62,9 +63,16 @@ def main():
     neptune = Planet(30 * Planet.AU, 0, 19, DARK_BLUE, 102.409 * 10**24)
     neptune.vy = -5.45 * 1000
 
+    #Add all to list of planets
     planets = [sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune]
+    
 
-    asteroidbelt = AsteroidBelt(1000,sun = sun)  # Example: 100 asteroids
+    #Moons, which are instances of larger asteroids with a reference to a planet instead of a star
+    moon = Asteroid(0, 0, 7.0E9, DARK_GREY, 102.409, earth)
+   
+
+    #Create Asteroidbelt instance and have 700 asteroids in this belt and the sun as reference
+    asteroidbelt = AsteroidBelt(700,sun = sun) 
 
 
     
@@ -91,12 +99,21 @@ def main():
                     offset_y += 40
                 elif event.key == pygame.K_DOWN:
                     offset_y -= 40
+
+        #Create planets and update per tick going through all planets
         for planet in planets:
             planet.update_position(planets)
             planet.draw(WIN, scale, (offset_x, offset_y))
+        
+        #Create the astroid belt and update
         asteroidbelt.update_positions(planets)
         asteroidbelt.draw(WIN,scale, (offset_x,offset_y))
 
+        #Update and draw moons
+        moon.update_position(planets,0.08)
+        moon.draw(WIN,scale,(offset_x,offset_y))
+        
+      
         pygame.display.update()
 
     pygame.quit()
