@@ -1,6 +1,9 @@
 import pygame
 import math
 import random
+pygame.init()
+FONT = pygame.font.SysFont("comicsans", 16)
+WHITE = (255, 255, 255)
 
 #Planet class which takes realistic values, and uses them for update function
 class Planet:
@@ -9,6 +12,7 @@ class Planet:
     SCALE = 300 / AU  # 1AU = 100 pixels
     TIMESTEP = 3600*24  # 1 day
 
+    # Contrustor, take in x and y position, radius, color of planet and mass (kg)
     def __init__(self, x, y, radius, color, mass):
         self.x = x
         self.y = y
@@ -23,24 +27,47 @@ class Planet:
         self.vx = 0
         self.vy = 0
 
-    def draw(self, win, scale, offset):
+    # Function used to draw the planet
+    def draw(self, win, scale, offset, d_o, d_d):
         scaled_x = self.x * self.SCALE * scale + offset[0]
         scaled_y = self.y * self.SCALE * scale + offset[1]
 
+        # If Draw Orbit (d_o) true, display orbit
+        if d_o == True:
+            if len(self.orbit) > 2:
+                updated_points = []
+                for point in self.orbit:
+                    x, y = point
+                    x = x * self.SCALE * scale + offset[0]
+                    y = y * self.SCALE * scale + offset[1]
+                    updated_points.append((x, y))
+                if self.sun == False:
+                    pygame.draw.lines(win, self.color, False, updated_points, 2)
+        if d_o == False:
+            self.orbit.clear()
+
         pygame.draw.circle(win, self.color, (scaled_x, scaled_y), int(self.radius * scale))
 
+        # If Draw Distance (d_d) true, display distance (km)
+        if d_d == True:
+            if not self.sun:
+                distance_text = FONT.render(f"{round(self.distance_to_sun/1000, 1)}km", 1, WHITE)
+                win.blit(distance_text, (scaled_x - distance_text.get_width()/2, scaled_y - distance_text.get_height()/2))
+
+    #Calculates the gravitational force vector between two objects, considering their masses and distances
     def attraction(self, other):
         distance_vector = [other.x - self.x, other.y - self.y]
         distance = math.sqrt(distance_vector[0] ** 2 + distance_vector[1] ** 2)
 
-        #if other.sun:
-            #self.distance_to_sun = distance
+        if other.sun:
+            self.distance_to_sun = distance
 
         force_magnitude = self.G * self.mass * other.mass / distance ** 2
         force_vector = [force_magnitude * distance_vector[0] / distance,  force_magnitude * distance_vector[1] / distance]
 
         return force_vector
 
+    # Updates the position of a celestial object based on the gravitational forces exerted by other planets in the system
     def update_position(self, planets):
         total_force_x = 0
         total_force_y = 0
@@ -94,9 +121,6 @@ class Asteroid(Planet):
         #Set position to x and y from the reference star/planet.
         self.x = x+self.star_ref.x
         self.y = y+ self.star_ref.y
-
-        
-
 
 
 #Asteroid belt class used to form asteroid belts in solar system.

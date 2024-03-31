@@ -4,6 +4,7 @@ from planet import Planet
 from planet import Asteroid
 from planet import AsteroidBelt
 import random
+import pygame_gui
 
 pygame.init()
 
@@ -16,6 +17,7 @@ WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 # Set Title
 pygame.display.set_caption("Solar System Simulation")
 
+# Set Color Variables
 WHITE = (255, 255, 255)
 YELLOW = (255, 255, 0)
 BLUE = (100, 149, 237)
@@ -30,15 +32,17 @@ offset_x = 400
 offset_y = 400
 
 def main():
-    global scale, offset_x, offset_y, dragging, last_mouse_pos
+    # Set variables for panning and zooming camera
+    global scale, offset_x, offset_y
 
     run = True
     clock = pygame.time.Clock() 
 
-    #Create Sun and planets in solar system with realistic values
-    sun = Planet(0, 0, 30, YELLOW, 1.98892 * 10**30)
+    # Create Sun and planets in solar system with realistic values
+    sun = Planet(0, 0, 70, YELLOW, 1.98892 * 10**30)
     sun.sun = True
 
+    # List of planets to be used in our Solar System
     mercury = Planet(0.387 * Planet.AU, 0, 3, DARK_GREY, 3.30 * 10**23)
     mercury.vy = -47.4 * 1000
 
@@ -66,30 +70,65 @@ def main():
     #Add all to list of planets
     planets = [sun, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune]
     
-
     #Moons, which are instances of larger asteroids with a reference to a planet instead of a star
     moon = Asteroid(0, 0, 7.0E9, DARK_GREY, 102.409, earth)
    
-
     #Create Asteroidbelt instance and have 700 asteroids in this belt and the sun as reference
-    asteroidbelt = AsteroidBelt(700,sun = sun) 
+    asteroidbelt = AsteroidBelt(700,sun = sun)
 
+    # Create a UIManager
+    ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT))
 
+    # Create a slider
+    slider = pygame_gui.elements.UIHorizontalSlider(relative_rect=pygame.Rect((10, 10), (200, 20)),
+                                                     start_value=1.0,
+                                                     value_range=(0.1, 5.0),
+                                                     manager=ui_manager)
+
+    # Create a label next to the slider
+    slider_label = pygame_gui.elements.UILabel(relative_rect=pygame.Rect((230, 10), (130, 20)),
+                                                text="Simulation Speed",
+                                                manager=ui_manager)
+
+    # Create Buttons
+    draw_orbits = pygame_gui.elements.ui_button.UIButton(relative_rect=pygame.Rect((10, 40), (150, 30)),
+                                                           text="Draw Orbits",
+                                                           manager=ui_manager)
+    draw_distance = pygame_gui.elements.ui_button.UIButton(relative_rect=pygame.Rect((10, 70), (150, 30)),
+                                                             text="Draw Distance",
+                                                             manager=ui_manager)
     
-    dragging = False
+    # If button pressed or not
+    d_o = False
+    d_d = False
+
+    # Inside your main function before the main loop
+    background_surface = pygame.Surface((WIDTH, HEIGHT))
+    background_surface.fill((0, 0, 0))  # Fill background with black
+
+    # Draw stars on the background surface
+    num_stars = 200  # Adjust as needed
+    for _ in range(num_stars):
+        x = random.randint(0, WIDTH)
+        y = random.randint(0, HEIGHT)
+        radius = random.uniform(1, 2)
+        pygame.draw.circle(background_surface, WHITE, (x, y), radius)
 
     while run:
+        time_delta = clock.tick(60) / 1000.0
         clock.tick(60)
         WIN.fill((0, 0, 0))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
+            # Zooming Camera
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 4:  # scroll up
                     scale *= 1.1
                 elif event.button == 5:  # scroll down
                     scale /= 1.1
+            # If arrow keys are hit, pan camera to the direction by 40 pixels
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     offset_x -= 40
@@ -99,21 +138,40 @@ def main():
                     offset_y += 40
                 elif event.key == pygame.K_DOWN:
                     offset_y -= 40
+            if event.type == pygame.USEREVENT:
+                if event.user_type == pygame_gui.UI_HORIZONTAL_SLIDER_MOVED:
+                    # Update simulation speed based on slider value
+                    if event.ui_element == slider:
+                        simulation_speed = slider.get_current_value()
+                        for planet in planets:
+                            planet.TIMESTEP = 3600 * 24 * simulation_speed
+                elif event.user_type == pygame_gui.UI_BUTTON_PRESSED:
+                    # Draw orbits or Draw distance if button pressed
+                    if event.ui_element == draw_distance:
+                        d_d = not d_d
+                    elif event.ui_element == draw_orbits:
+                        d_o = not d_o
 
-        #Create planets and update per tick going through all planets
+            ui_manager.process_events(event)
+
+        WIN.blit(background_surface, (0, 0))
+
+        # Create planets and update per tick going through all planets
         for planet in planets:
             planet.update_position(planets)
-            planet.draw(WIN, scale, (offset_x, offset_y))
+            planet.draw(WIN, scale, (offset_x, offset_y), d_o, d_d)
         
-        #Create the astroid belt and update
+        # Create the astroid belt and update
         asteroidbelt.update_positions(planets)
         asteroidbelt.draw(WIN,scale, (offset_x,offset_y))
 
-        #Update and draw moons
+        # Update and draw moons
         moon.update_position(planets,0.08)
         moon.draw(WIN,scale,(offset_x,offset_y))
         
-      
+        # Update and Display UI
+        ui_manager.update(time_delta)
+        ui_manager.draw_ui(WIN)
         pygame.display.update()
 
     pygame.quit()
