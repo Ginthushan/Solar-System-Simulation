@@ -72,9 +72,21 @@ def main():
     
     #Moons, which are instances of larger asteroids with a reference to a planet instead of a star
     moon = Asteroid(0, 0, 7.0E9, DARK_GREY, 102.409, earth)
+    phobos = Asteroid(0,0,7.0E9, DARK_GREY, 102.409,mars)
+    deimos = Asteroid(0,0,7.0E9, BROWN, 102, mars)
+    phobos.size = 2
+    deimos.size = 2
+    deimos.angle = 2.6
+    moons = [moon,phobos,deimos]
    
     #Create Asteroidbelt instance and have 700 asteroids in this belt and the sun as reference
-    asteroidbelt = AsteroidBelt(700,sun = sun)
+    asteroidbelt = AsteroidBelt(700,sun, 2.2, 3.9)
+
+    #Saturn Rings created by instantiating an asteroid belt, to make it seem like moons creating the rings.
+    saturnbelt = AsteroidBelt(100, saturn, 0.1,0.125,angle_inc=0.07)
+
+    #Create the Kuiper Belt instance
+    kuper_belt = AsteroidBelt(2000,sun,32,55)
 
     # Create a UIManager
     ui_manager = pygame_gui.UIManager((WIDTH, HEIGHT))
@@ -130,9 +142,9 @@ def main():
                     scale /= 1.1
             # If arrow keys are hit, pan camera to the direction by 40 pixels
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_RIGHT:
                     offset_x -= 40
-                elif event.key == pygame.K_RIGHT:
+                elif event.key == pygame.K_LEFT:
                     offset_x += 40
                 if event.key == pygame.K_UP:
                     offset_y += 40
@@ -162,12 +174,20 @@ def main():
             planet.draw(WIN, scale, (offset_x, offset_y), d_o, d_d)
         
         # Create the astroid belt and update
-        asteroidbelt.update_positions(planets)
+        asteroidbelt.update_positions(0.002)
         asteroidbelt.draw(WIN,scale, (offset_x,offset_y))
 
-        # Update and draw moons
-        moon.update_position(planets,0.08)
-        moon.draw(WIN,scale,(offset_x,offset_y))
+        saturnbelt.update_positions(0.02)
+        saturnbelt.draw(WIN,scale,(offset_x,offset_y))
+
+        #Create Kuper Belt and update
+        kuper_belt.update_positions(0.002)
+        kuper_belt.draw(WIN,scale,(offset_x,offset_y))
+
+        #Moons and their updates
+        for i in moons:
+            i.update_position(0.08)
+            i.draw(WIN,scale,(offset_x,offset_y))
         
         # Update and Display UI
         ui_manager.update(time_delta)

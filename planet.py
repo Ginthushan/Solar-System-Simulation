@@ -112,7 +112,7 @@ class Asteroid(Planet):
         pygame.draw.circle(win, self.color, (int(scaled_x), int(scaled_y)), max(int(self.size * scale), 1))
 
     #Use the angle, increment it by a value- determines how fast the angular velocity is essentially per step.
-    def update_position(self, planets,val):
+    def update_position(self, val):
         self.angle -= val
         #Get x and y component based on new angle
         x = self.radius*math.cos(self.angle)
@@ -131,23 +131,24 @@ class AsteroidBelt:
     TIMESTEP = 3600*24  # 1 day
     COLOR = (169, 169, 169)
     #Create list of asteroid objects, and their reference point.
-    def __init__(self, num_asteroids, sun):
+    def __init__(self, num_asteroids, sun,range_start,range_end,angle_inc = 0.022421):
         self.asteroids = []
         self.sun = sun  # Assuming the sun is a Planet object
+        self.angle_inc = angle_inc
 
         #Create this asteroid belt on instantiation
-        self.create_asteroid_belt(num_asteroids)
+        self.create_asteroid_belt(num_asteroids,range_start,range_end)
 
-    def create_asteroid_belt(self, num_asteroids):
+    def create_asteroid_belt(self, num_asteroids,range_start, range_end):
         #Angle initially is 0, and increases so each star placed around uniformly.
         angle = 0.001
         for _ in range(num_asteroids):
             #Radius, bandwith of asteroid belt in solar system(Width), to pick a random value in for the radius of their orbits. 
             #Each asteroid will have random in this range.
-            ranradius = random.uniform(self.AU * 2.2, self.AU *3.9)
+            ranradius = random.uniform(range_start*self.AU, range_end * self.AU)
             #X and Y Components from this radius
-            x = ranradius * math.cos(angle)
-            y = ranradius * math.sin(angle)
+            x = ranradius * math.cos(angle) + self.sun.x
+            y = ranradius * math.sin(angle) + self.sun.y
             #Random mass per asteroid
             mass = random.uniform(1E12,1E14)
             #Create the object
@@ -155,7 +156,7 @@ class AsteroidBelt:
             #Increment the angle, so that it spawns in a new area around the belt.
             asteroid.angle += angle
             #Increment this angle so we have a new one for next asteroid creation further around circle.
-            angle += 0.022421 
+            angle += self.angle_inc
             self.asteroids.append(asteroid)
             
 
@@ -163,9 +164,9 @@ class AsteroidBelt:
         for asteroid in self.asteroids:
             asteroid.draw(win, scale, offset)
 
-    def update_positions(self,planets):
+    def update_positions(self,val):
         for asteroid in self.asteroids:
-            asteroid.update_position(planets,0.002)
+            asteroid.update_position(val)
         
 
 
