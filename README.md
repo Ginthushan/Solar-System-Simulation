@@ -31,3 +31,5 @@ Before running our program, ensure the required dependecies are installed. Simpl
 Following this, running main.py will execute our code.
 
 # Demo
+
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/jb7Y1OeWHe0/0.jpg)](https://www.youtube.com/watch?v=jb7Y1OeWHe0)
