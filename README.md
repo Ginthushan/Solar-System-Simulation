@@ -33,3 +33,5 @@ Following this, running main.py will execute our code.
 # Demo
 
 [![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/jb7Y1OeWHe0/0.jpg)](https://www.youtube.com/watch?v=jb7Y1OeWHe0)
+
+If clicking the image doesn't redirect, click this link: [https://www.youtube.com/watch?v=jb7Y1OeWHe0](https://www.youtube.com/watch?v=jb7Y1OeWHe0)
